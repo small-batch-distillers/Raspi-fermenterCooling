@@ -8,6 +8,7 @@ import time
 import lcddriver
 import RPi.GPIO as GPIO
 import sys
+import datetime
 
 # Vars
 
@@ -19,8 +20,7 @@ valvestatus = 0          # 0 means the valve is shut, 1 means the valve is open
 prevalvestatus = 0       # Used to check if valve has changed position, is set to 0 initially
 temp_diff = 2            # how much (in degree Celcius) cooler should the coolingwater be, before cooling is effective? 
 batch = sys.argv[1]      # Batch number is passed as argument for the logfile. eg "python sbdh.py gin01"
-
-
+cycle = 0
 #Prepare hardware
 
 GPIO.setmode(GPIO.BOARD) # Use physical pin numbering
@@ -98,6 +98,8 @@ def read_mashtemp():
 try:
     #Loop for valve control, logging and LCD output.
     while True:
+            now = datetime.datetime.now()
+            dt = now.strftime("%Y-%m-%d %H:%M:%S")
             cooltempfinal = read_cooltemp()
             mashtempfinal = read_mashtemp()
             display.lcd_display_string(u"G\xe6rtank:  " + str(mashtempfinal), 1) # Write line of text to first line of display
@@ -105,11 +107,13 @@ try:
             display.lcd_display_string("Max temp:  " + str(temp_max), 3) 
             display.lcd_display_string("Ventil er: " + str(valvestatus), 4)
             batchlog = open(filename, "a+")
-            batchlog.write("maesktemp," + str(mashtempfinal) + "," + "koelevand," + str(cooltempfinal) +'\n')
+            batchlog.write(dt)
+            batchlog.write(",maesktemp," + str(mashtempfinal) + "," + "koelevand," + str(cooltempfinal) +'\n')
             batchlog.close()
 
             print (u"G\xe6rtank: " + str(mashtempfinal) + " " + u"k\xf8levand: " + str(cooltempfinal))
-            time.sleep(3)
+            print(dt)
+            time.sleep(60)
 
             if mashtempfinal > (cooltempfinal +temp_diff) and mashtempfinal > temp_max:
                GPIO.output(valve_gpio, GPIO.HIGH)
