@@ -8,7 +8,7 @@ import time
 import lcddriver
 import RPi.GPIO as GPIO
 import sys
-import datetime
+#import datetime
 
 # Vars
 
@@ -36,7 +36,7 @@ else:
     append_write = 'w' # make a new file if not
 
 batchlog = open(filename,append_write)
-batchlog.write("batchname: " + batch + '\n')
+#batchlog.write("batchname: " + batch + '\n')
 batchlog.close()
 
 # User inputs (disabled until tested live), set them as vars instead until LCD Menu is created.
@@ -65,6 +65,7 @@ def read_cooltemp():
     if equals_pos != -1:
         temp_string = lines[1][equals_pos+2:]
         temp_c = float(temp_string) / 1000.0
+        #temp_c = int(round(temp_c))
         return temp_c
 
 
@@ -89,6 +90,7 @@ def read_mashtemp():
     if equals_pos != -1:
         temp_stringm = linesm[1][equals_pos+2:]
         temp_cm = float(temp_stringm) / 1000.0
+        #temp_cm = int(round(temp_cm))
         return temp_cm
 
 
@@ -98,8 +100,7 @@ def read_mashtemp():
 try:
     #Loop for valve control, logging and LCD output.
     while True:
-            now = datetime.datetime.now()
-            dt = now.strftime("%Y-%m-%d %H:%M:%S")
+            cycle = cycle +1
             cooltempfinal = read_cooltemp()
             mashtempfinal = read_mashtemp()
             display.lcd_display_string(u"G\xe6rtank:  " + str(mashtempfinal), 1) # Write line of text to first line of display
@@ -107,12 +108,12 @@ try:
             display.lcd_display_string("Max temp:  " + str(temp_max), 3) 
             display.lcd_display_string("Ventil er: " + str(valvestatus), 4)
             batchlog = open(filename, "a+")
-            batchlog.write(dt)
-            batchlog.write(",maesktemp," + str(mashtempfinal) + "," + "koelevand," + str(cooltempfinal) +'\n')
-            batchlog.close()
+#            batchlog.write(",maesktemp," + str(mashtempfinal) + "," + "koelevand," + str(cooltempfinal) +'\n')
+            batchlog.write(str(cycle) + ","+ str(mashtempfinal) + "," + str(cooltempfinal) +'\n')
 
+            batchlog.close()
             print (u"G\xe6rtank: " + str(mashtempfinal) + " " + u"k\xf8levand: " + str(cooltempfinal))
-            print(dt)
+            print (cycle)
             time.sleep(60)
 
             if mashtempfinal > (cooltempfinal +temp_diff) and mashtempfinal > temp_max:
@@ -127,16 +128,15 @@ except KeyboardInterrupt:
     # here you put any code you want to run before the program
     # exits when you press CTRL+
     print (" Ctrl,C pressed")
-#   display.lcd_clear()
 
 except:
     # this catches ALL other exceptions including errors.  
     # You won't get any error messages for debugging  
     # so only use it once your code is working  
     print ("Other error or exception occurred!")  
-#    display.lcd_clear()
 
 finally:
     GPIO.cleanup() # this ensures a clean exit
     display.lcd_clear()
-    #display.lcd.LCD_DISPLAYOFF(0)
+#    os.system("graph4.py "str(filename))
+    
